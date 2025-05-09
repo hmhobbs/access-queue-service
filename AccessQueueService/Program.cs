@@ -1,3 +1,4 @@
+using AccessQueueService.Data;
 using AccessQueueService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IAccessService, AccessService>();
+builder.Services.AddSingleton<IAccessQueueRepo, DictionaryAccessQueueRepo>();
 
 
 var app = builder.Build();

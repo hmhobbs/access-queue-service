@@ -1,35 +1,39 @@
-﻿using AccessQueueService.Models;
+﻿using AccessQueueService.Data;
+using AccessQueueService.Models;
 
 namespace AccessQueueService.Services
 {
     public class AccessService : IAccessService
     {
-        private readonly Dictionary<Guid, AccessTicket> _accessTickets = new();
-        private readonly Queue<AccessTicket> _accessQueue = new();
-        private readonly SemaphoreSlim _queueLock = new(1, 1);
         private readonly IConfiguration _configuration;
+        private readonly IAccessQueueRepo _accessQueueRepo;
+
+        //private readonly Dictionary<Guid, AccessTicket> _accessTickets = new();
+        //private readonly Queue<AccessTicket> _accessQueue = new();
+        private readonly SemaphoreSlim _queueLock = new(1, 1);
         private readonly int EXP_SECONDS;
         private readonly int ACT_SECONDS;
         private readonly int CAPACITY_LIMIT;
         private readonly bool ROLLING_EXPIRATION;
-        public AccessService(IConfiguration configuration)
+        public AccessService(IConfiguration configuration, IAccessQueueRepo accessQueueRepo)
         {
             _configuration = configuration;
+            _accessQueueRepo = accessQueueRepo;
             EXP_SECONDS = _configuration.GetValue<int>("AccessQueue:ExpirationSeconds");
             ACT_SECONDS = _configuration.GetValue<int>("AccessQueue:ActivitySeconds");
             CAPACITY_LIMIT = _configuration.GetValue<int>("AccessQueue:CapacityLimit");
             ROLLING_EXPIRATION = _configuration.GetValue<bool>("AccessQueue:RollingExpiration");
         }
-        public int UnexpiredTicketsCount => _accessTickets.Count(t => t.Value.ExpiresOn > DateTime.UtcNow);
-        public int ActiveTicketsCount => _accessTickets.Count(t => t.Value.ExpiresOn > DateTime.UtcNow && t.Value.LastActive > DateTime.UtcNow.AddSeconds(-_configuration.GetValue<int>("AccessQueue:ActivitySeconds")));
-        public int QueueCount => _accessQueue.Count;
+        public int UnexpiredTicketsCount => _accessQueueRepo.GetUnexpiredTicketsCount();
+        public int ActiveTicketsCount => _accessQueueRepo.GetActiveTicketsCount(DateTime.UtcNow.AddSeconds(-_configuration.GetValue<int>("AccessQueue:ActivitySeconds")));
+        public int QueueCount => _accessQueueRepo.GetQueueCount();
         public async Task<AccessResponse> RequestAccess(Guid userId)
         {
             await _queueLock.WaitAsync();
             try
             {
-                var hasCapacity = !DidDequeueUntilFull();
-                var existingTicket = _accessTickets.GetValueOrDefault(userId);
+                var hasCapacity = !_accessQueueRepo.DidDequeueUntilFull(ACT_SECONDS, EXP_SECONDS, CAPACITY_LIMIT);
+                var existingTicket = _accessQueueRepo.GetTicket(userId);
                 if (existingTicket != null && existingTicket.ExpiresOn > DateTime.UtcNow)
                 {
                     var expiresOn = existingTicket.ExpiresOn;
@@ -37,12 +41,12 @@ namespace AccessQueueService.Services
                     {
                         expiresOn = DateTime.UtcNow.AddSeconds(EXP_SECONDS);
                     }
-                    _accessTickets[userId] = new AccessTicket
+                    _accessQueueRepo.UpsertTicket(new AccessTicket
                     {
                         UserId = userId,
                         ExpiresOn = expiresOn,
                         LastActive = DateTime.UtcNow
-                    };
+                    });
                     return new AccessResponse
                     {
                         ExpiresOn = expiresOn
@@ -56,20 +60,19 @@ namespace AccessQueueService.Services
                         ExpiresOn = DateTime.UtcNow.AddSeconds(EXP_SECONDS),
                         LastActive = DateTime.UtcNow
                     };
-                    _accessTickets[userId] = accessTicket;
+                    _accessQueueRepo.UpsertTicket(accessTicket);
                     return new AccessResponse
                     {
-                        ExpiresOn = _accessTickets[userId].ExpiresOn,
-                        RequestsAhead = _accessQueue.Count
+                        ExpiresOn = accessTicket.ExpiresOn,
                     };
                 }
                 else
                 {
-                    var indexOfTicket = IndexOfTicket(userId);
-                    var requestsAhead = _accessQueue.Count - indexOfTicket - 1;
+                    var indexOfTicket = _accessQueueRepo.IndexOfTicket(userId);
+                    var requestsAhead = _accessQueueRepo.GetQueueCount() - indexOfTicket - 1;
                     if (indexOfTicket == -1)
                     {
-                        _accessQueue.Enqueue(new AccessTicket
+                        _accessQueueRepo.Enqueue(new AccessTicket
                         {
                             UserId = userId,
                             LastActive = DateTime.UtcNow,
@@ -94,7 +97,7 @@ namespace AccessQueueService.Services
             await _queueLock.WaitAsync();
             try
             {
-                return _accessTickets.Remove(userId);
+                return _accessQueueRepo.RemoveUser(userId);
             }
             finally
             {
@@ -102,63 +105,6 @@ namespace AccessQueueService.Services
             }
         }
 
-        public int DeleteExpiredTickets()
-        {
-            var now = DateTime.UtcNow;
-            var expiredTickets = _accessTickets.Where(t => t.Value.ExpiresOn < now);
-            int count = 0;
-            foreach (var ticket in expiredTickets)
-            {
-                count++;
-                _accessTickets.Remove(ticket.Key);
-            }
-            return count;
-        }
-
-        private bool DidDequeueUntilFull()
-        {
-            var now = DateTime.UtcNow;
-            var activeCutoff = now.AddSeconds(-ACT_SECONDS);
-            var numberOfActiveUsers = _accessTickets.Count(t => t.Value.ExpiresOn > now && t.Value.LastActive > activeCutoff);
-            var openSpots = CAPACITY_LIMIT - numberOfActiveUsers;
-            int filledSpots = 0;
-            while (filledSpots < openSpots)
-            {
-                if (_accessQueue.TryDequeue(out var nextUser))
-                {
-                    if (nextUser.LastActive < activeCutoff)
-                    {
-                        // User is inactive, throw away their ticket
-                        continue;
-                    }
-                    _accessTickets[nextUser.UserId] = new AccessTicket
-                    {
-                        UserId = nextUser.UserId,
-                        ExpiresOn = now.AddSeconds(EXP_SECONDS),
-                        LastActive = now
-                    };
-                    filledSpots++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            return filledSpots == openSpots;
-        }
-
-        private int IndexOfTicket(Guid userId)
-        {
-            var index = 0;
-            foreach (var ticket in _accessQueue)
-            {
-                if (ticket.UserId == userId)
-                {
-                    return index;
-                }
-                index++;
-            }
-            return -1;
-        }
+        public int DeleteExpiredTickets() => _accessQueueRepo.DeleteExpiredTickets();
     }
 }

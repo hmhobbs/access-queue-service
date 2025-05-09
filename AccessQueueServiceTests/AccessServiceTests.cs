@@ -1,5 +1,6 @@
 namespace AccessQueueServiceTests
 {
+    using global::AccessQueueService.Data;
     using global::AccessQueueService.Services;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -32,8 +33,9 @@ namespace AccessQueueServiceTests
                 var configuration = new ConfigurationBuilder()
                     .AddInMemoryCollection(inMemorySettings)
                     .Build();
+                var accessQueueRepo = new DictionaryAccessQueueRepo();
 
-                _accessService = new AccessService(configuration);
+                _accessService = new AccessService(configuration, accessQueueRepo);
             }
 
             [Fact]
