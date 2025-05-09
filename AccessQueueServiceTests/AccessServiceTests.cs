@@ -16,7 +16,7 @@ namespace AccessQueueServiceTests
             const int ACT_SECONDS = 1;
             const int ACT_MILLIS = 1000 * ACT_SECONDS;
             const int CAP_LIMIT = 5;
-            const int BULK_COUNT = 10000;
+            const int BULK_COUNT = 50000;
             private readonly AccessService _accessService;
 
             public AccessServiceTests()

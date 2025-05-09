@@ -6,8 +6,8 @@ namespace AccessQueueService.Services
     {
         private readonly Dictionary<Guid, AccessTicket> _accessTickets = new();
         private readonly Queue<AccessTicket> _accessQueue = new();
-        private static SemaphoreSlim _queueLock = new(1, 1);
-        private IConfiguration _configuration;
+        private readonly SemaphoreSlim _queueLock = new(1, 1);
+        private readonly IConfiguration _configuration;
         private readonly int EXP_SECONDS;
         private readonly int ACT_SECONDS;
         private readonly int CAPACITY_LIMIT;
@@ -104,7 +104,8 @@ namespace AccessQueueService.Services
 
         public int DeleteExpiredTickets()
         {
-            var expiredTickets = _accessTickets.Where(t => t.Value.ExpiresOn < DateTime.UtcNow);
+            var now = DateTime.UtcNow;
+            var expiredTickets = _accessTickets.Where(t => t.Value.ExpiresOn < now);
             int count = 0;
             foreach (var ticket in expiredTickets)
             {
@@ -116,8 +117,9 @@ namespace AccessQueueService.Services
 
         private bool DidDequeueUntilFull()
         {
-            var activeCutoff = DateTime.UtcNow.AddSeconds(-ACT_SECONDS);
-            var numberOfActiveUsers = _accessTickets.Count(t => t.Value.ExpiresOn > DateTime.UtcNow && t.Value.LastActive > activeCutoff);
+            var now = DateTime.UtcNow;
+            var activeCutoff = now.AddSeconds(-ACT_SECONDS);
+            var numberOfActiveUsers = _accessTickets.Count(t => t.Value.ExpiresOn > now && t.Value.LastActive > activeCutoff);
             var openSpots = CAPACITY_LIMIT - numberOfActiveUsers;
             int filledSpots = 0;
             while (filledSpots < openSpots)
@@ -132,8 +134,8 @@ namespace AccessQueueService.Services
                     _accessTickets[nextUser.UserId] = new AccessTicket
                     {
                         UserId = nextUser.UserId,
-                        ExpiresOn = DateTime.UtcNow.AddSeconds(EXP_SECONDS),
-                        LastActive = DateTime.UtcNow
+                        ExpiresOn = now.AddSeconds(EXP_SECONDS),
+                        LastActive = now
                     };
                     filledSpots++;
                 }
