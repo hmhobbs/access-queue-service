@@ -30,7 +30,7 @@ namespace AccessQueueServiceTests
                 };
 
                 var configuration = new ConfigurationBuilder()
-                    .AddInMemoryCollection(inMemorySettings) // Add in-memory settings
+                    .AddInMemoryCollection(inMemorySettings)
                     .Build();
 
                 _accessService = new AccessService(configuration);
@@ -39,13 +39,10 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RequestAccess_ShouldGrantAccess_WhenCapacityIsAvailable()
             {
-                // Arrange
                 var userId = Guid.NewGuid();
 
-                // Act
                 var response = await _accessService.RequestAccess(userId);
 
-                // Assert
                 Assert.NotNull(response);
                 Assert.NotNull(response.ExpiresOn);
                 Assert.True(response.RequestsAhead == 0);
@@ -57,14 +54,11 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RequestAccess_ShouldReturnAccessResponse_WhenUserAlreadyHasTicket()
             {
-                // Arrange
                 var userId = Guid.NewGuid();
-                await _accessService.RequestAccess(userId); // First request to create a ticket
+                await _accessService.RequestAccess(userId);
 
-                // Act
-                var response = await _accessService.RequestAccess(userId); // Second request for the same user
+                var response = await _accessService.RequestAccess(userId);
 
-                // Assert
                 Assert.NotNull(response);
                 Assert.NotNull(response.ExpiresOn);
                 Assert.True(response.RequestsAhead == 0);
@@ -76,20 +70,17 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RequestAccess_ShouldQueueUser_WhenCapacityIsFull()
             {
-                // Arrange
                 for (int i = 0; i < CAP_LIMIT * 2; i++) // Fill double capacity
                 {
                     await _accessService.RequestAccess(Guid.NewGuid());
                 }
                 var userId = Guid.NewGuid();
 
-                // Act
                 var response = await _accessService.RequestAccess(userId);
 
-                // Assert
                 Assert.NotNull(response);
                 Assert.Null(response.ExpiresOn);
-                Assert.True(response.RequestsAhead == 5);
+                Assert.True(response.RequestsAhead == CAP_LIMIT);
                 Assert.Equal(5, _accessService.UnexpiredTicketsCount);
                 Assert.Equal(5, _accessService.ActiveTicketsCount);
                 Assert.Equal(6, _accessService.QueueCount);
@@ -99,27 +90,21 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RevokeAccess_ShouldReturnTrue_WhenUserHasAccess()
             {
-                // Arrange
                 var userId = Guid.NewGuid();
                 await _accessService.RequestAccess(userId);
 
-                // Act
                 var result = await _accessService.RevokeAccess(userId);
 
-                // Assert
                 Assert.True(result);
             }
 
             [Fact]
             public async Task RevokeAccess_ShouldReturnFalse_WhenUserDoesNotHaveAccess()
             {
-                // Arrange
                 var userId = Guid.NewGuid();
 
-                // Act
                 var result = await _accessService.RevokeAccess(userId);
 
-                // Assert
                 Assert.False(result);
             }
 
@@ -230,7 +215,7 @@ namespace AccessQueueServiceTests
             public async Task RequestAccess_ShouldReportLessInQueue_AsTicketsInactivate()
             {
                 var start = DateTime.UtcNow;
-                for (int i = 0; i < CAP_LIMIT; i++) // Fill all slots
+                for (int i = 0; i < CAP_LIMIT; i++)
                 {
                     var elapsed = DateTime.UtcNow - start;
                     Console.WriteLine($"Elapsed time: {elapsed.TotalSeconds} s: Adding {i}");
