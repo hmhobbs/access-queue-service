@@ -1,0 +1,51 @@
+﻿@page "/"
+@using AccessQueuePlayground.Models
+@using AccessQueuePlayground.Services
+@using BlazorBootstrap
+
+@inject IAccessQueueManager Manager
+
+<PageTitle>AccessQueue Playground</PageTitle>
+
+<Button Color="ButtonColor.Success" @onclick="AddUser">Add User</Button>
+<Button Color="ButtonColor.Primary" @onclick="Refresh">Refresh</Button>
+
+@if(Status != null)
+{
+	@foreach(var user in Status.Users)
+	{
+		<div>
+			<p>@user.Id @user.LatestResponse?.HasAccess @user.LatestResponse?.ExpiresOn</p>
+		</div>
+	}
+}
+
+@code {
+	public AccessQueueStatus? Status;
+
+	protected override void OnInitialized()
+	{
+		Manager.StatusUpdated += OnStatusUpdated;
+		Status = Manager.GetStatus();
+	}
+
+	private void OnStatusUpdated()
+	{
+		InvokeAsync(() =>
+		{
+			Status = Manager.GetStatus();
+			StateHasChanged();
+		});
+	}
+
+	public void Refresh()
+	{
+		Status = Manager.GetStatus();
+	}
+
+	public void AddUser()
+	{
+		Manager.AddUser();
+		Status = Manager.GetStatus();
+	}
+}
