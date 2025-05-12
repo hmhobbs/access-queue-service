@@ -245,6 +245,19 @@ namespace AccessQueueServiceTests
                 Assert.Equal(0, response.RequestsAhead);
             }
 
+            [Fact]
+            public async Task RequestAccess_ShouldShowCorrectRequestsAhead_WhenAccessRerequested()
+            {
+                for (int i = 0; i < CAP_LIMIT + 3; i++)
+                {
+                    await _accessService.RequestAccess(Guid.NewGuid());
+                }
+                var id = Guid.NewGuid();
+                var response = await _accessService.RequestAccess(id);
+                Assert.Equal(3, response.RequestsAhead);
+                response = await _accessService.RequestAccess(id);
+                Assert.Equal(3, response?.RequestsAhead);
+            }
         }
     }
 }
