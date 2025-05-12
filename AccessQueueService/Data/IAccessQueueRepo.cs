@@ -10,7 +10,7 @@ namespace AccessQueueService.Data
         public int GetQueueCount();
         public AccessTicket? GetTicket(Guid userId);
         public void UpsertTicket(AccessTicket ticket);
-        public int IndexOfTicket(Guid userId);
+        public int GetRequestsAhead(Guid userId);
         public void Enqueue(AccessTicket ticket);
         public int DeleteExpiredTickets();
         public bool RemoveUser(Guid userId);

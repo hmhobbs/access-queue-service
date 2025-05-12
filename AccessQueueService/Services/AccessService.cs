@@ -68,9 +68,8 @@ namespace AccessQueueService.Services
                 }
                 else
                 {
-                    var indexOfTicket = _accessQueueRepo.IndexOfTicket(userId);
-                    var requestsAhead = _accessQueueRepo.GetQueueCount() - indexOfTicket - 1;
-                    if (indexOfTicket == -1)
+                    var requestsAhead = _accessQueueRepo.GetRequestsAhead(userId);
+                    if (requestsAhead == -1)
                     {
                         _accessQueueRepo.Enqueue(new AccessTicket
                         {
@@ -82,7 +81,7 @@ namespace AccessQueueService.Services
                     return new AccessResponse
                     {
                         ExpiresOn = null,
-                        RequestsAhead = requestsAhead
+                        RequestsAhead = _accessQueueRepo.GetQueueCount() - 1
                     };
                 }
             }

@@ -12,7 +12,7 @@ namespace AccessQueueService.Data
         public int GetActiveTicketsCount(DateTime activeCutoff) => _accessTickets
             .Count(t => t.Value.ExpiresOn > DateTime.UtcNow && t.Value.LastActive >activeCutoff);
         public int GetQueueCount() => _accessQueue.Count;
-        public int IndexOfTicket(Guid userId)
+        public int GetRequestsAhead(Guid userId)
         {
             var index = 0;
             foreach (var ticket in _accessQueue)
