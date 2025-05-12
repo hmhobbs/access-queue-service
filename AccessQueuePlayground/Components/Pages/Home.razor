@@ -10,14 +10,53 @@
 <Button Color="ButtonColor.Success" @onclick="AddUser">Add User</Button>
 <Button Color="ButtonColor.Primary" @onclick="Refresh">Refresh</Button>
 
-@if(Status != null)
+@if (Status != null)
 {
-	@foreach(var user in Status.Users)
-	{
-		<div>
-			<p>@user.Id @user.LatestResponse?.HasAccess @user.LatestResponse?.ExpiresOn</p>
-		</div>
-	}
+	<h2>Users with access</h2>
+	<Grid TItem="User" Data="Status.AccessUsers" Class="table table-bordered mt-3" AllowSorting>
+		<GridColumns>
+			<GridColumn TItem="User" HeaderText="Id" PropertyName="Id" SortKeySelector="item => item.Id">
+				@context.Id
+			</GridColumn>
+			<GridColumn TItem="User" HeaderText="Expiration" PropertyName="LatestResponse?.ExpiresOn" SortKeySelector="item => item.LatestResponse.ExpiresOn">
+				@context.LatestResponse?.ExpiresOn
+			</GridColumn>
+			<GridColumn TItem="User" HeaderText="Active">
+				<ChildContent>
+					<Switch Value="context.Active" ValueExpression="() => context.Active" ValueChanged="(_) => ToggleUserActive(context.Id)" />
+				</ChildContent>
+			</GridColumn>
+		</GridColumns>
+	</Grid>
+	<h2>Users in queue</h2>
+	<Grid TItem="User" Data="Status.QueuedUsers" Class="table table-bordered mt-3" AllowSorting>
+		<GridColumns>
+			<GridColumn TItem="User" HeaderText="Id" PropertyName="Id" SortKeySelector="item => item.Id">
+				@context.Id
+			</GridColumn>
+			<GridColumn TItem="User" HeaderText="Queue Postition" PropertyName="LatestResponse?.RequestsAhead">
+				@(context.LatestResponse?.RequestsAhead ?? 0 + 1)
+			</GridColumn>
+			<GridColumn TItem="User" HeaderText="Active">
+				<ChildContent>
+					<Switch Value="context.Active" ValueExpression="() => context.Active" ValueChanged="(_) => ToggleUserActive(context.Id)" />
+				</ChildContent>
+			</GridColumn>
+		</GridColumns>
+	</Grid>
+	<h2>Inactive users</h2>
+	<Grid TItem="User" Data="Status.InactiveUsers" Class="table table-bordered mt-3" AllowSorting>
+		<GridColumns>
+			<GridColumn TItem="User" HeaderText="Id" PropertyName="Id" SortKeySelector="item => item.Id">
+				@context.Id
+			</GridColumn>
+			<GridColumn TItem="User" HeaderText="Active">
+				<ChildContent>
+					<Switch Value="context.Active" ValueExpression="() => context.Active" ValueChanged="(_) => ToggleUserActive(context.Id)" />
+				</ChildContent>
+			</GridColumn>
+		</GridColumns>
+	</Grid>
 }
 
 @code {
@@ -47,5 +86,10 @@
 	{
 		Manager.AddUser();
 		Status = Manager.GetStatus();
+	}
+
+	public void ToggleUserActive(Guid userId)
+	{
+		Manager.ToggleUserActivity(userId);
 	}
 }

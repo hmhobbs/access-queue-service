@@ -52,13 +52,29 @@ namespace AccessQueuePlayground.Services
             var newStatus = new AccessQueueStatus();
             foreach (var user in userList)
             {
-                AccessResponse? response = user.LatestResponse;
                 if (user.Active)
                 {
-                    response = await _accessService.RequestAccess(user.Id);
-                    user.LatestResponse = response;
+                    user.LatestResponse = await _accessService.RequestAccess(user.Id);
+                    if (user.LatestResponse?.HasAccess ?? false)
+                    {
+                        newStatus.AccessUsers.Add(user);
+                    }
+                    else
+                    {
+                        newStatus.QueuedUsers.Add(user);
+                    }
                 }
-                newStatus.Users.Add(user);
+                else
+                {
+                    if(user.LatestResponse?.ExpiresOn != null && user.LatestResponse.ExpiresOn > DateTime.UtcNow)
+                    {
+                        newStatus.AccessUsers.Add(user);
+                    }
+                    else
+                    {
+                        newStatus.InactiveUsers.Add(user);
+                    }
+                }
             }
             _status = newStatus;
             NotifyStatusUpdated();
