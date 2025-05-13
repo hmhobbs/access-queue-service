@@ -67,6 +67,7 @@ namespace AccessQueueService.Data
                 if (_accessQueue.TryGetValue(_nowServing, out var nextUser))
                 {
                     _accessQueue.Remove(_nowServing);
+                    _queueNumbers.Remove(nextUser.UserId);
                     _nowServing++;
                     if (nextUser.LastActive < activeCutoff)
                     {
@@ -80,10 +81,6 @@ namespace AccessQueueService.Data
                         LastActive = now
                     };
                     filledSpots++;
-                }
-                else
-                {
-                    break;
                 }
             }
             return filledSpots == openSpots;
@@ -101,6 +98,11 @@ namespace AccessQueueService.Data
 
         bool IAccessQueueRepo.RemoveUser(Guid userId)
         {
+            if(_queueNumbers.TryGetValue(userId, out var queueNumber))
+            {
+                _accessQueue.Remove(queueNumber);
+                _queueNumbers.Remove(userId);
+            }
             return _accessTickets.Remove(userId);
         }
     }
