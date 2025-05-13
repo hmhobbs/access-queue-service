@@ -71,6 +71,7 @@ namespace AccessQueueService.Services
                     var requestsAhead = _accessQueueRepo.GetRequestsAhead(userId);
                     if (requestsAhead == -1)
                     {
+                        requestsAhead = _accessQueueRepo.GetQueueCount();
                         _accessQueueRepo.Enqueue(new AccessTicket
                         {
                             UserId = userId,
@@ -81,7 +82,7 @@ namespace AccessQueueService.Services
                     return new AccessResponse
                     {
                         ExpiresOn = null,
-                        RequestsAhead = _accessQueueRepo.GetQueueCount() - 1
+                        RequestsAhead = requestsAhead
                     };
                 }
             }

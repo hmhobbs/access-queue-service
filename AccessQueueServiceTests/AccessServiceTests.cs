@@ -281,15 +281,30 @@ namespace AccessQueueServiceTests
             public async Task RequestAccess_ShouldShowCorrectRequestsAhead_WhenAccessRerequested(IAccessQueueRepo repo)
             {
                 CreateService(repo);
-                for (int i = 0; i < CAP_LIMIT + 3; i++)
+                for (int i = 0; i < CAP_LIMIT; i++)
                 {
                     await _accessService.RequestAccess(Guid.NewGuid());
                 }
-                var id = Guid.NewGuid();
-                var response = await _accessService.RequestAccess(id);
-                Assert.Equal(3, response.RequestsAhead);
-                response = await _accessService.RequestAccess(id);
-                Assert.Equal(3, response?.RequestsAhead);
+
+                var id1 = Guid.NewGuid();
+                var id2 = Guid.NewGuid();
+                var id3 = Guid.NewGuid();
+
+                var response1 = await _accessService.RequestAccess(id1);
+                var response2 = await _accessService.RequestAccess(id2);
+                var response3 = await _accessService.RequestAccess(id3);
+
+                Assert.Equal(0, response1.RequestsAhead);
+                Assert.Equal(1, response2.RequestsAhead);
+                Assert.Equal(2, response3.RequestsAhead);
+                
+                response1 = await _accessService.RequestAccess(id1);
+                response2 = await _accessService.RequestAccess(id2);
+                response3 = await _accessService.RequestAccess(id3);
+
+                Assert.Equal(0, response1.RequestsAhead);
+                Assert.Equal(1, response2.RequestsAhead);
+                Assert.Equal(2, response3.RequestsAhead);
             }
         }
     }
