@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddSingleton<IAccessService, AccessService>();
-builder.Services.AddSingleton<IAccessQueueRepo, DictionaryAccessQueueRepo>();
+builder.Services.AddSingleton<IAccessQueueRepo, TakeANumberAccessQueueRepo>();
 builder.Services.AddSingleton<IAccessQueueManager, AccessQueueManager>();
 builder.Services.AddHostedService<AccessQueueBackgroundService>();
 

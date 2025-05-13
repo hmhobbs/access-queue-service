@@ -34,7 +34,7 @@
 			<GridColumn TItem="User" HeaderText="Id" PropertyName="Id" SortKeySelector="item => item.Id">
 				@context.Id
 			</GridColumn>
-			<GridColumn TItem="User" HeaderText="Queue Postition" PropertyName="LatestResponse?.RequestsAhead">
+			<GridColumn TItem="User" HeaderText="Queue Postition" PropertyName="LatestResponse?.RequestsAhead" SortKeySelector="item => item.LatestResponse.RequestsAhead">
 				@(context.LatestResponse?.RequestsAhead ?? 0 + 1)
 			</GridColumn>
 			<GridColumn TItem="User" HeaderText="Active">
