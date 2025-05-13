@@ -62,6 +62,7 @@ namespace AccessQueueService.Data
             {
                 if (_accessQueue.TryGetValue(_nowServing, out var nextUser))
                 {
+                    _accessQueue.Remove(_nowServing);
                     _nowServing++;
                     if (nextUser.LastActive < activeCutoff)
                     {
