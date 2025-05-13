@@ -36,6 +36,7 @@ namespace AccessQueueService.Services
                 var existingTicket = _accessQueueRepo.GetTicket(userId);
                 if (existingTicket != null && existingTicket.ExpiresOn > DateTime.UtcNow)
                 {
+                    // Already has access
                     var expiresOn = existingTicket.ExpiresOn;
                     if (ROLLING_EXPIRATION)
                     {
@@ -54,6 +55,7 @@ namespace AccessQueueService.Services
                 }
                 if (hasCapacity)
                 {
+                    // Doesn't have access, but there's space available
                     var accessTicket = new AccessTicket
                     {
                         UserId = userId,
@@ -68,6 +70,7 @@ namespace AccessQueueService.Services
                 }
                 else
                 {
+                    // No access and no space, add to queue
                     var requestsAhead = _accessQueueRepo.GetRequestsAhead(userId);
                     if (requestsAhead == -1)
                     {

@@ -57,6 +57,10 @@ namespace AccessQueueService.Data
             var activeCutoff = now.AddSeconds(-activeSeconds);
             var numberOfActiveUsers = _accessTickets.Count(t => t.Value.ExpiresOn > now && t.Value.LastActive > activeCutoff);
             var openSpots = capacityLimit - numberOfActiveUsers;
+            if(openSpots <= 0)
+            {
+                return true;
+            }
             int filledSpots = 0;
             while (filledSpots < openSpots && _nowServing < _nextUnusedTicket)
             {
