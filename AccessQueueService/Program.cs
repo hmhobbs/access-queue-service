@@ -10,7 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IAccessService, AccessService>();
-builder.Services.AddSingleton<IAccessQueueRepo, DictionaryAccessQueueRepo>();
+builder.Services.AddSingleton<IAccessQueueRepo, TakeANumberAccessQueueRepo>();
 
 
 var app = builder.Build();

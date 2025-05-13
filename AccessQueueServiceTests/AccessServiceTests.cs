@@ -18,14 +18,9 @@ namespace AccessQueueServiceTests
             const int ACT_MILLIS = 1000 * ACT_SECONDS;
             const int CAP_LIMIT = 5;
             const int BULK_COUNT = 50000;
-            private AccessService _accessService;
-            public static IEnumerable<object[]> RepoImplementations()
-            {
-                yield return new object[] { new DictionaryAccessQueueRepo() };
-                yield return new object[] { new TakeANumberAccessQueueRepo() };
-            }
+            private readonly AccessService _accessService;
 
-            private void CreateService(IAccessQueueRepo repo)
+            public AccessServiceTests()
             {
                 var inMemorySettings = new Dictionary<string, string?>
                 {
@@ -38,16 +33,14 @@ namespace AccessQueueServiceTests
                 var configuration = new ConfigurationBuilder()
                     .AddInMemoryCollection(inMemorySettings)
                     .Build();
+                var accessQueueRepo = new TakeANumberAccessQueueRepo();
 
-
-                _accessService = new AccessService(configuration, repo);
+                _accessService = new AccessService(configuration, accessQueueRepo);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldGrantAccess_WhenCapacityIsAvailable(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldGrantAccess_WhenCapacityIsAvailable()
             {
-                CreateService(repo);
                 var userId = Guid.NewGuid();
 
                 var response = await _accessService.RequestAccess(userId);
@@ -60,11 +53,9 @@ namespace AccessQueueServiceTests
                 Assert.Equal(0, _accessService.QueueCount);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldReturnAccessResponse_WhenUserAlreadyHasTicket(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldReturnAccessResponse_WhenUserAlreadyHasTicket()
             {
-                CreateService(repo);
                 var userId = Guid.NewGuid();
                 await _accessService.RequestAccess(userId);
 
@@ -78,11 +69,9 @@ namespace AccessQueueServiceTests
                 Assert.Equal(0, _accessService.QueueCount);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldQueueUser_WhenCapacityIsFull(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldQueueUser_WhenCapacityIsFull()
             {
-                CreateService(repo);
                 for (int i = 0; i < CAP_LIMIT * 2; i++) // Fill double capacity
                 {
                     await _accessService.RequestAccess(Guid.NewGuid());
@@ -100,11 +89,9 @@ namespace AccessQueueServiceTests
             }
 
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RevokeAccess_ShouldReturnTrue_WhenUserHasAccess(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RevokeAccess_ShouldReturnTrue_WhenUserHasAccess()
             {
-                CreateService(repo);
                 var userId = Guid.NewGuid();
                 await _accessService.RequestAccess(userId);
 
@@ -113,11 +100,9 @@ namespace AccessQueueServiceTests
                 Assert.True(result);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RevokeAccess_ShouldReturnFalse_WhenUserDoesNotHaveAccess(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RevokeAccess_ShouldReturnFalse_WhenUserDoesNotHaveAccess()
             {
-                CreateService(repo);
                 var userId = Guid.NewGuid();
 
                 var result = await _accessService.RevokeAccess(userId);
@@ -125,11 +110,9 @@ namespace AccessQueueServiceTests
                 Assert.False(result);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldQueueUser_AfterAccessRevoked(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldQueueUser_AfterAccessRevoked()
             {
-                CreateService(repo);
                 var userId = Guid.NewGuid();
                 await _accessService.RequestAccess(userId);
 
@@ -148,11 +131,9 @@ namespace AccessQueueServiceTests
                 Assert.False(responseAfterRevoke.HasAccess);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldNotQueueUser_WhenMultipleRequestsForOtherUsersMade(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldNotQueueUser_WhenMultipleRequestsForOtherUsersMade()
             {
-                CreateService(repo);
                 for (int i = 0; i < CAP_LIMIT; i++) // Fill slots without awaiting
                 {
                     _ = _accessService.RequestAccess(Guid.NewGuid());
@@ -162,11 +143,9 @@ namespace AccessQueueServiceTests
                 Assert.False(response.HasAccess);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldUpdateExpirationTime_WhenRollingExpirationTrue(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldUpdateExpirationTime_WhenRollingExpirationTrue()
             {
-                CreateService(repo);
                 var userId = Guid.NewGuid();
                 var initialResponse = await _accessService.RequestAccess(userId);
                 await Task.Delay(ACT_MILLIS);
@@ -174,11 +153,9 @@ namespace AccessQueueServiceTests
                 Assert.True(updatedResponse.ExpiresOn > initialResponse.ExpiresOn);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldGrantAccess_WhenUsersWithAccessInactive(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldGrantAccess_WhenUsersWithAccessInactive()
             {
-                CreateService(repo);
                 for (int i = 0; i < CAP_LIMIT; i++)
                 {
                     await _accessService.RequestAccess(Guid.NewGuid());
@@ -191,11 +168,9 @@ namespace AccessQueueServiceTests
                 Assert.True(response.HasAccess);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldRevokeAccess_WhenExpired(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldRevokeAccess_WhenExpired()
             {
-                CreateService(repo);
                 var userId = Guid.NewGuid();
                 var response = await _accessService.RequestAccess(userId);
                 Assert.True(response.HasAccess);
@@ -208,11 +183,9 @@ namespace AccessQueueServiceTests
                 Assert.False(response.HasAccess);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldRetailAccess_WhenNotExpired(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldRetailAccess_WhenNotExpired()
             {
-                CreateService(repo);
                 var userId = Guid.NewGuid();
                 var response = await _accessService.RequestAccess(userId);
                 Assert.True(response.HasAccess);
@@ -226,11 +199,9 @@ namespace AccessQueueServiceTests
                 Assert.True(response.HasAccess);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldProcessBulkRequests(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldProcessBulkRequests()
             {
-                CreateService(repo);
                 var userId = Guid.NewGuid();
                 await _accessService.RequestAccess(userId);
                 for (int i = 0; i < BULK_COUNT; i++)
@@ -242,11 +213,9 @@ namespace AccessQueueServiceTests
                 Assert.True(response.HasAccess);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldReportLessInQueue_AsTicketsInactivate(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldReportLessInQueue_AsTicketsInactivate()
             {
-                CreateService(repo);
                 var start = DateTime.UtcNow;
                 for (int i = 0; i < CAP_LIMIT; i++)
                 {
@@ -276,11 +245,9 @@ namespace AccessQueueServiceTests
                 Assert.Equal(0, response.RequestsAhead);
             }
 
-            [Theory]
-            [MemberData(nameof(RepoImplementations))]
-            public async Task RequestAccess_ShouldShowCorrectRequestsAhead_WhenAccessRerequested(IAccessQueueRepo repo)
+            [Fact]
+            public async Task RequestAccess_ShouldShowCorrectRequestsAhead_WhenAccessRerequested()
             {
-                CreateService(repo);
                 for (int i = 0; i < CAP_LIMIT; i++)
                 {
                     await _accessService.RequestAccess(Guid.NewGuid());
@@ -297,7 +264,7 @@ namespace AccessQueueServiceTests
                 Assert.Equal(0, response1.RequestsAhead);
                 Assert.Equal(1, response2.RequestsAhead);
                 Assert.Equal(2, response3.RequestsAhead);
-                
+
                 response1 = await _accessService.RequestAccess(id1);
                 response2 = await _accessService.RequestAccess(id2);
                 response3 = await _accessService.RequestAccess(id3);
@@ -306,6 +273,7 @@ namespace AccessQueueServiceTests
                 Assert.Equal(1, response2.RequestsAhead);
                 Assert.Equal(2, response3.RequestsAhead);
             }
+
         }
     }
 }
