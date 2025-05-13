@@ -20,7 +20,11 @@ namespace AccessQueueService.Data
         {
             if(_queueNumbers.TryGetValue(userId, out var queueNumber))
             {
-                return queueNumber >= _nowServing ? (int)(queueNumber - _nowServing) : -1;
+                if(_accessQueue.TryGetValue(queueNumber, out var ticket))
+                {
+                    ticket.LastActive = DateTime.UtcNow;
+                    return queueNumber >= _nowServing ? (int)(queueNumber - _nowServing) : -1;
+                }
             }
             return -1;
             
