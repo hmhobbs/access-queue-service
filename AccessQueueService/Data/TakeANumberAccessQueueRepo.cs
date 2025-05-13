@@ -3,34 +3,36 @@ using Microsoft.Extensions.Configuration;
 
 namespace AccessQueueService.Data
 {
-    public class DictionaryAccessQueueRepo : IAccessQueueRepo
+    public class TakeANumberAccessQueueRepo : IAccessQueueRepo
     {
-        private readonly Dictionary<Guid, AccessTicket> _accessTickets = new();
-        private readonly Queue<AccessTicket> _accessQueue = new();
+        private readonly Dictionary<Guid, AccessTicket> _accessTickets = [];
+        private readonly Dictionary<Guid, ulong> _queueNumbers = [];
+        private readonly Dictionary<ulong, AccessTicket> _accessQueue = [];
+
+        private ulong _nowServing = 0;
+        private ulong _nextUnusedTicket = 0; 
 
         public int GetUnexpiredTicketsCount() => _accessTickets.Count(t => t.Value.ExpiresOn > DateTime.UtcNow);
         public int GetActiveTicketsCount(DateTime activeCutoff) => _accessTickets
-            .Count(t => t.Value.ExpiresOn > DateTime.UtcNow && t.Value.LastActive >activeCutoff);
-        public int GetQueueCount() => _accessQueue.Count;
+            .Count(t => t.Value.ExpiresOn > DateTime.UtcNow && t.Value.LastActive > activeCutoff);
+        public int GetQueueCount() => (int)(_nextUnusedTicket - _nowServing);
         public int GetRequestsAhead(Guid userId)
         {
-            var index = 0;
-            foreach (var ticket in _accessQueue)
+            if(_queueNumbers.TryGetValue(userId, out var queueNumber))
             {
-                if (ticket.UserId == userId)
-                {
-                    return index;
-                }
-                index++;
+                return queueNumber >= _nowServing ? (int)(queueNumber - _nowServing) : -1;
             }
             return -1;
+            
         }
 
         public void Enqueue(AccessTicket ticket)
         {
-            _accessQueue.Enqueue(ticket);
+            _queueNumbers[ticket.UserId] = _nextUnusedTicket;
+            _accessQueue[_nextUnusedTicket] = ticket;
+            _nextUnusedTicket++;
         }
-        
+
         public int DeleteExpiredTickets()
         {
             var cutoff = DateTime.UtcNow;
@@ -56,10 +58,11 @@ namespace AccessQueueService.Data
             var numberOfActiveUsers = _accessTickets.Count(t => t.Value.ExpiresOn > now && t.Value.LastActive > activeCutoff);
             var openSpots = capacityLimit - numberOfActiveUsers;
             int filledSpots = 0;
-            while (filledSpots < openSpots)
+            while (filledSpots < openSpots && _nowServing < _nextUnusedTicket)
             {
-                if (_accessQueue.TryDequeue(out var nextUser))
+                if (_accessQueue.TryGetValue(_nowServing, out var nextUser))
                 {
+                    _nowServing++;
                     if (nextUser.LastActive < activeCutoff)
                     {
                         // User is inactive, throw away their ticket
