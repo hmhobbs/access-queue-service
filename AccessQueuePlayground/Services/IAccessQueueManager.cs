@@ -8,7 +8,7 @@ namespace AccessQueuePlayground.Services
         public Task RecalculateStatus();
         public AccessQueueStatus GetStatus();
         public Guid AddUser();
-        public void ToggleUserActivity(Guid userId);
+        public void SetUserActive(Guid userId, bool isActive);
 
     }
 }

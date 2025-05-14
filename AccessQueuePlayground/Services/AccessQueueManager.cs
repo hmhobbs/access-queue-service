@@ -32,17 +32,17 @@ namespace AccessQueuePlayground.Services
             _users[id] = new User
             {
                 Id = id,
-                Active = true,
+                Active = false,
             };
             return id;
         }
 
-        public void ToggleUserActivity(Guid userId)
+        public void SetUserActive(Guid userId, bool isActive)
         {
             var user = _users[userId];
             if (user != null)
             {
-                user.Active = !user.Active;
+                user.Active = isActive;
             }
         }
 
@@ -76,6 +76,7 @@ namespace AccessQueuePlayground.Services
                     }
                 }
             }
+            newStatus.QueuedUsers.Sort((user1, user2) => user1.LatestResponse!.RequestsAhead - user2.LatestResponse!.RequestsAhead);
             _status = newStatus;
             NotifyStatusUpdated();
         }
