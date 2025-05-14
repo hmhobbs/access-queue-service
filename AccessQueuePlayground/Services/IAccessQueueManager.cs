@@ -9,6 +9,9 @@ namespace AccessQueuePlayground.Services
         public AccessQueueStatus GetStatus();
         public Guid AddUser();
         public void SetUserActive(Guid userId, bool isActive);
+        public void RevokeAccess(Guid userId);
+        public void RevokeAllAccess();
+        public void Reset();
 
     }
 }

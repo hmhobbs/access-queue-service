@@ -7,8 +7,11 @@
 
 <PageTitle>AccessQueue Playground</PageTitle>
 
-<Button Color="ButtonColor.Success" @onclick="AddUser">Add User</Button>
-
+<p>
+	<Button Color="ButtonColor.Success" @onclick="AddUser">Add User</Button>
+	<Button Color="ButtonColor.Danger" @onclick="RevokeAllAccess">Revoke All</Button>
+	<Button Color="ButtonColor.Warning" @onclick="Reset">Reset Data</Button>
+</p>
 @if (Status != null)
 {
 	<h2>Users with access</h2>
@@ -25,6 +28,11 @@
 					<Switch Value="context.Active" ValueExpression="() => context.Active" ValueChanged="(value) => SetUserActive(context.Id, value)" />
 				</ChildContent>
 			</GridColumn>
+			<GridColumn TItem="User" HeaderText="Revoke">
+				<ChildContent>
+					<Button Color="ButtonColor.Danger" @onclick="() => RevokeAccess(context.Id)">Revoke Access</Button>
+				</ChildContent>
+			</GridColumn>
 		</GridColumns>
 	</Grid>
 	<h2>Users in queue</h2>
@@ -39,6 +47,11 @@
 			<GridColumn TItem="User" HeaderText="Active">
 				<ChildContent>
 					<Switch Value="context.Active" ValueExpression="() => context.Active" ValueChanged="(value) => SetUserActive(context.Id, value)" />
+				</ChildContent>
+			</GridColumn>
+			<GridColumn TItem="User" HeaderText="Revoke">
+				<ChildContent>
+					<Button Color="ButtonColor.Danger" @onclick="() => RevokeAccess(context.Id)">Revoke Access</Button>
 				</ChildContent>
 			</GridColumn>
 		</GridColumns>
@@ -85,5 +98,20 @@
 	public void SetUserActive(Guid userId, bool isActive)
 	{
 		Manager.SetUserActive(userId, isActive);
+	}
+
+	public void RevokeAccess(Guid userId)
+	{
+		Manager.RevokeAccess(userId);
+	}
+
+	public void RevokeAllAccess()
+	{
+		Manager.RevokeAllAccess();
+	}
+
+	public void Reset()
+	{
+		Manager.Reset();
 	}
 }

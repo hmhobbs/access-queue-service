@@ -17,9 +17,17 @@ namespace AccessQueuePlayground.Services
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                await _accessQueueManager.RecalculateStatus();
-                await Task.Delay(1000, stoppingToken); // Run every second
+                try
+                {
+                    await _accessQueueManager.RecalculateStatus();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+                await Task.Delay(100, stoppingToken); // Run every second
             }
+            Console.WriteLine("Stopping now because who tf knows why");
         }
     }
 }

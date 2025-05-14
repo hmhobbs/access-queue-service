@@ -8,7 +8,7 @@ namespace AccessQueuePlayground.Services
     public class AccessQueueManager : IAccessQueueManager
     {
         private readonly IAccessService _accessService;
-        private readonly ConcurrentDictionary<Guid, User> _users;
+        private ConcurrentDictionary<Guid, User> _users;
         private AccessQueueStatus _status;
         public event Action? StatusUpdated;
 
@@ -39,8 +39,7 @@ namespace AccessQueuePlayground.Services
 
         public void SetUserActive(Guid userId, bool isActive)
         {
-            var user = _users[userId];
-            if (user != null)
+            if (_users.TryGetValue(userId, out var user))
             {
                 user.Active = isActive;
             }
@@ -79,6 +78,28 @@ namespace AccessQueuePlayground.Services
             newStatus.QueuedUsers.Sort((user1, user2) => user1.LatestResponse!.RequestsAhead - user2.LatestResponse!.RequestsAhead);
             _status = newStatus;
             NotifyStatusUpdated();
+        }
+
+        public void RevokeAccess(Guid userId)
+        {
+            var user = _users[userId];
+            user.Active = false;
+            user.LatestResponse = null;
+            _accessService.RevokeAccess(userId);
+        }
+
+        public void RevokeAllAccess()
+        {
+            foreach (var user in _users.Values)
+            {
+                RevokeAccess(user.Id);
+            }
+        }
+
+        public void Reset()
+        {
+            RevokeAllAccess();
+            _users = [];
         }
     }
 }

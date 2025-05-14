@@ -68,11 +68,10 @@ namespace AccessQueueService.Data
             int filledSpots = 0;
             while (filledSpots < openSpots && _nowServing < _nextUnusedTicket)
             {
-                if (_accessQueue.TryGetValue(_nowServing, out var nextUser))
+                if (_accessQueue.TryGetValue(_nowServing++, out var nextUser))
                 {
                     _accessQueue.Remove(_nowServing);
                     _queueNumbers.Remove(nextUser.UserId);
-                    _nowServing++;
                     if (nextUser.LastActive < activeCutoff)
                     {
                         // User is inactive, throw away their ticket

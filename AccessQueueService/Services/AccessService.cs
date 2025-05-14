@@ -8,8 +8,6 @@ namespace AccessQueueService.Services
         private readonly IConfiguration _configuration;
         private readonly IAccessQueueRepo _accessQueueRepo;
 
-        //private readonly Dictionary<Guid, AccessTicket> _accessTickets = new();
-        //private readonly Queue<AccessTicket> _accessQueue = new();
         private readonly SemaphoreSlim _queueLock = new(1, 1);
         private readonly int EXP_SECONDS;
         private readonly int ACT_SECONDS;
