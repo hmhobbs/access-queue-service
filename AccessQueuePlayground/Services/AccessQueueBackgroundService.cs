@@ -7,27 +7,22 @@ namespace AccessQueuePlayground.Services
     public class AccessQueueBackgroundService : BackgroundService
     {
         private readonly IAccessQueueManager _accessQueueManager;
+        private readonly IConfiguration _config;
 
-        public AccessQueueBackgroundService(IAccessQueueManager accessQueueManager)
+        public AccessQueueBackgroundService(IAccessQueueManager accessQueueManager, IConfiguration config)
         {
             _accessQueueManager = accessQueueManager;
+            _config = config;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            int refreshRate = _config.GetValue<int>("AccessQueuePlayground:RefreshRateMilliseconds");
             while (!stoppingToken.IsCancellationRequested)
             {
-                try
-                {
-                    await _accessQueueManager.RecalculateStatus();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                }
-                await Task.Delay(100, stoppingToken); // Run every second
+                await _accessQueueManager.RecalculateStatus();
+                await Task.Delay(refreshRate, stoppingToken);
             }
-            Console.WriteLine("Stopping now because who tf knows why");
         }
     }
 }
