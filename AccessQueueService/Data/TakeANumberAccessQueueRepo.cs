@@ -68,7 +68,7 @@ namespace AccessQueueService.Data
             int filledSpots = 0;
             while (filledSpots < openSpots && _nowServing < _nextUnusedTicket)
             {
-                if (_accessQueue.TryGetValue(_nowServing++, out var nextUser))
+                if (_accessQueue.TryGetValue(_nowServing, out var nextUser))
                 {
                     _accessQueue.Remove(_nowServing);
                     _queueNumbers.Remove(nextUser.UserId);
@@ -85,6 +85,7 @@ namespace AccessQueueService.Data
                     };
                     filledSpots++;
                 }
+                _nowServing++;
             }
             return filledSpots == openSpots;
         }
