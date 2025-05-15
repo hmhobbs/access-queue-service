@@ -2,12 +2,14 @@
 using AccessQueuePlayground.Models;
 using AccessQueueService.Models;
 using AccessQueueService.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace AccessQueuePlayground.Services
 {
     public class AccessQueueManager : IAccessQueueManager
     {
         private readonly IAccessService _accessService;
+        private readonly IConfiguration _config;
         private ConcurrentDictionary<Guid, User> _users;
         private AccessQueueStatus _status;
         public event Action? StatusUpdated;
@@ -17,14 +19,22 @@ namespace AccessQueuePlayground.Services
             StatusUpdated?.Invoke();
         }
 
-        public AccessQueueManager(IAccessService accessService)
+        public AccessQueueManager(IAccessService accessService, IConfiguration config)
         {
             _accessService = accessService;
             _users = new ConcurrentDictionary<Guid, User>();
             _status = new AccessQueueStatus();
+            _config = config;
         }
 
         public AccessQueueStatus GetStatus() => _status;
+
+        public AccessQueueConfig GetConfig() => new AccessQueueConfig
+        {
+            ActivitySeconds = _config.GetValue<int>("AccessQueue:ActivitySeconds"),
+            ExpirationSeconds = _config.GetValue<int>("AccessQueue:ExpirationSeconds"),
+            CapacityLimit = _config.GetValue<int>("AccessQueue:CapacityLimit")
+        };
 
         public Guid AddUser()
         {

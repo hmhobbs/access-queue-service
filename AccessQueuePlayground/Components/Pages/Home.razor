@@ -6,7 +6,15 @@
 @inject IAccessQueueManager Manager
 
 <PageTitle>AccessQueue Playground</PageTitle>
-
+@if (Config != null)
+{
+	<h4>Config</h4>
+	<p>
+		<b>Expiration Seconds:</b> @Config.ExpirationSeconds,
+		<b>Activity Seconds:</b> @Config.ActivitySeconds,
+		<b>Capacity Limit:</b> @Config.CapacityLimit
+	</p>
+}
 <p>
 	<Button Color="ButtonColor.Success" @onclick="AddUser">Add User</Button>
 	<Button Color="ButtonColor.Danger" @onclick="RevokeAllAccess">Revoke All</Button>
@@ -73,11 +81,12 @@
 
 @code {
 	public AccessQueueStatus? Status;
-
+	public AccessQueueConfig? Config;
 	protected override void OnInitialized()
 	{
 		Manager.StatusUpdated += OnStatusUpdated;
 		Status = Manager.GetStatus();
+		Config = Manager.GetConfig();
 	}
 
 	private void OnStatusUpdated()

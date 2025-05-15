@@ -5,6 +5,7 @@ namespace AccessQueuePlayground.Services
     public interface IAccessQueueManager
     {
         public event Action? StatusUpdated;
+        public AccessQueueConfig GetConfig();
         public Task RecalculateStatus();
         public AccessQueueStatus GetStatus();
         public Guid AddUser();
