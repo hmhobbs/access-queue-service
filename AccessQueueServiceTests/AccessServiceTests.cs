@@ -41,7 +41,7 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RequestAccess_ShouldGrantAccess_WhenCapacityIsAvailable()
             {
-                var userId = Guid.NewGuid();
+                var userId = "user";
 
                 var response = await _accessService.RequestAccess(userId);
 
@@ -56,7 +56,7 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RequestAccess_ShouldReturnAccessResponse_WhenUserAlreadyHasTicket()
             {
-                var userId = Guid.NewGuid();
+                var userId = "user";
                 await _accessService.RequestAccess(userId);
 
                 var response = await _accessService.RequestAccess(userId);
@@ -74,9 +74,9 @@ namespace AccessQueueServiceTests
             {
                 for (int i = 0; i < CAP_LIMIT * 2; i++) // Fill double capacity
                 {
-                    await _accessService.RequestAccess(Guid.NewGuid());
+                    await _accessService.RequestAccess(Guid.NewGuid().ToString());
                 }
-                var userId = Guid.NewGuid();
+                var userId = "user";
 
                 var response = await _accessService.RequestAccess(userId);
 
@@ -92,7 +92,7 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RevokeAccess_ShouldReturnTrue_WhenUserHasAccess()
             {
-                var userId = Guid.NewGuid();
+                var userId = "user";
                 await _accessService.RequestAccess(userId);
 
                 var result = await _accessService.RevokeAccess(userId);
@@ -103,7 +103,7 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RevokeAccess_ShouldReturnFalse_WhenUserDoesNotHaveAccess()
             {
-                var userId = Guid.NewGuid();
+                var userId = "user";
 
                 var result = await _accessService.RevokeAccess(userId);
 
@@ -113,12 +113,12 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RequestAccess_ShouldQueueUser_AfterAccessRevoked()
             {
-                var userId = Guid.NewGuid();
+                var userId = "user";
                 await _accessService.RequestAccess(userId);
 
                 for (int i = 0; i < CAP_LIMIT; i++) // Fill remaining slots
                 {
-                    await _accessService.RequestAccess(Guid.NewGuid());
+                    await _accessService.RequestAccess(Guid.NewGuid().ToString());
                 }
 
                 var response = await _accessService.RequestAccess(userId); // Request access before revoking
@@ -136,9 +136,9 @@ namespace AccessQueueServiceTests
             {
                 for (int i = 0; i < CAP_LIMIT; i++) // Fill slots without awaiting
                 {
-                    _ = _accessService.RequestAccess(Guid.NewGuid());
+                    _ = _accessService.RequestAccess(Guid.NewGuid().ToString());
                 }
-                var response = await _accessService.RequestAccess(Guid.NewGuid()); // Request access before revoking
+                var response = await _accessService.RequestAccess(Guid.NewGuid().ToString()); // Request access before revoking
                 Assert.NotNull(response);
                 Assert.False(response.HasAccess);
             }
@@ -146,7 +146,7 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RequestAccess_ShouldUpdateExpirationTime_WhenRollingExpirationTrue()
             {
-                var userId = Guid.NewGuid();
+                var userId = "user";
                 var initialResponse = await _accessService.RequestAccess(userId);
                 await Task.Delay(ACT_MILLIS);
                 var updatedResponse = await _accessService.RequestAccess(userId);
@@ -158,9 +158,9 @@ namespace AccessQueueServiceTests
             {
                 for (int i = 0; i < CAP_LIMIT; i++)
                 {
-                    await _accessService.RequestAccess(Guid.NewGuid());
+                    await _accessService.RequestAccess(Guid.NewGuid().ToString());
                 }
-                var userId = Guid.NewGuid();
+                var userId = "user";
                 var response = await _accessService.RequestAccess(userId);
                 Assert.False(response.HasAccess);
                 await Task.Delay(ACT_MILLIS);
@@ -171,13 +171,13 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RequestAccess_ShouldRevokeAccess_WhenExpired()
             {
-                var userId = Guid.NewGuid();
+                var userId = "user";
                 var response = await _accessService.RequestAccess(userId);
                 Assert.True(response.HasAccess);
                 await Task.Delay(EXP_MILLIS);
                 for (int i = 0; i < CAP_LIMIT; i++)
                 {
-                    await _accessService.RequestAccess(Guid.NewGuid());
+                    await _accessService.RequestAccess(Guid.NewGuid().ToString());
                 }
                 response = await _accessService.RequestAccess(userId);
                 Assert.False(response.HasAccess);
@@ -186,13 +186,13 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RequestAccess_ShouldRetailAccess_WhenNotExpired()
             {
-                var userId = Guid.NewGuid();
+                var userId = "user";
                 var response = await _accessService.RequestAccess(userId);
                 Assert.True(response.HasAccess);
                 await Task.Delay(ACT_MILLIS);
                 for (int i = 0; i < CAP_LIMIT; i++)
                 {
-                    response = await _accessService.RequestAccess(Guid.NewGuid());
+                    response = await _accessService.RequestAccess(Guid.NewGuid().ToString());
                     Assert.True(response.HasAccess);
                 }
                 response = await _accessService.RequestAccess(userId);
@@ -202,11 +202,11 @@ namespace AccessQueueServiceTests
             [Fact]
             public async Task RequestAccess_ShouldProcessBulkRequests()
             {
-                var userId = Guid.NewGuid();
+                var userId = "user";
                 await _accessService.RequestAccess(userId);
                 for (int i = 0; i < BULK_COUNT; i++)
                 {
-                    _ = _accessService.RequestAccess(Guid.NewGuid());
+                    _ = _accessService.RequestAccess(Guid.NewGuid().ToString());
                 }
                 var response = await _accessService.RequestAccess(userId);
                 Assert.NotNull(response);
@@ -220,15 +220,14 @@ namespace AccessQueueServiceTests
                 for (int i = 0; i < CAP_LIMIT; i++)
                 {
                     var elapsed = DateTime.UtcNow - start;
-                    Console.WriteLine($"Elapsed time: {elapsed.TotalSeconds} s: Adding {i}");
-                    await _accessService.RequestAccess(Guid.NewGuid());
+                    await _accessService.RequestAccess(Guid.NewGuid().ToString());
                     await Task.Delay(ACT_MILLIS / CAP_LIMIT);
                 }
                 var users = new[]
                 {
-                    Guid.NewGuid(),
-                    Guid.NewGuid(),
-                    Guid.NewGuid()
+                    "user1",
+                    "user2",
+                    "user3"
                 };
 
                 await _accessService.RequestAccess(users[0]);
@@ -250,12 +249,12 @@ namespace AccessQueueServiceTests
             {
                 for (int i = 0; i < CAP_LIMIT; i++)
                 {
-                    await _accessService.RequestAccess(Guid.NewGuid());
+                    await _accessService.RequestAccess(Guid.NewGuid().ToString());
                 }
 
-                var id1 = Guid.NewGuid();
-                var id2 = Guid.NewGuid();
-                var id3 = Guid.NewGuid();
+                var id1 = "user1";
+                var id2 = "user2";
+                var id3 = "user3";
 
                 var response1 = await _accessService.RequestAccess(id1);
                 var response2 = await _accessService.RequestAccess(id2);

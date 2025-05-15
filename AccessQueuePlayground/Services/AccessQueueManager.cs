@@ -63,7 +63,7 @@ namespace AccessQueuePlayground.Services
             {
                 if (user.Active)
                 {
-                    user.LatestResponse = await _accessService.RequestAccess(user.Id);
+                    user.LatestResponse = await _accessService.RequestAccess(user.Id.ToString());
                     if (user.LatestResponse?.HasAccess ?? false)
                     {
                         newStatus.AccessUsers.Add(user);
@@ -95,7 +95,7 @@ namespace AccessQueuePlayground.Services
             var user = _users[userId];
             user.Active = false;
             user.LatestResponse = null;
-            _accessService.RevokeAccess(userId);
+            _accessService.RevokeAccess(userId.ToString());
         }
 
         public void RevokeAllAccess()

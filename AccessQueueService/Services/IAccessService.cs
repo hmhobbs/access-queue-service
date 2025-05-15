@@ -4,8 +4,8 @@ namespace AccessQueueService.Services
 {
     public interface IAccessService
     {
-        public Task<AccessResponse> RequestAccess(Guid userId);
-        public Task<bool> RevokeAccess(Guid userId);
+        public Task<AccessResponse> RequestAccess(string userId);
+        public Task<bool> RevokeAccess(string userId);
         public int DeleteExpiredTickets();
     }
 }

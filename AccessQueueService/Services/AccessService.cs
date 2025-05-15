@@ -25,7 +25,7 @@ namespace AccessQueueService.Services
         public int UnexpiredTicketsCount => _accessQueueRepo.GetUnexpiredTicketsCount();
         public int ActiveTicketsCount => _accessQueueRepo.GetActiveTicketsCount(DateTime.UtcNow.AddSeconds(-_configuration.GetValue<int>("AccessQueue:ActivitySeconds")));
         public int QueueCount => _accessQueueRepo.GetQueueCount();
-        public async Task<AccessResponse> RequestAccess(Guid userId)
+        public async Task<AccessResponse> RequestAccess(string userId)
         {
             await _queueLock.WaitAsync();
             try
@@ -93,7 +93,7 @@ namespace AccessQueueService.Services
             }
         }
 
-        public async Task<bool> RevokeAccess(Guid userId)
+        public async Task<bool> RevokeAccess(string userId)
         {
             await _queueLock.WaitAsync();
             try

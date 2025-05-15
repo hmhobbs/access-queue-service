@@ -17,14 +17,14 @@ namespace AccessQueueService.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<AccessResponse> Get(Guid id)
+        public async Task<AccessResponse> Get(string id)
         {
             return await _accessService.RequestAccess(id);
         }
 
         [HttpDelete]
         [Route("{id}")]
-        public async Task<bool> Delete(Guid id)
+        public async Task<bool> Delete(string id)
         {
             return await _accessService.RevokeAccess(id);
         }

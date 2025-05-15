@@ -5,8 +5,8 @@ namespace AccessQueueService.Data
 {
     public class TakeANumberAccessQueueRepo : IAccessQueueRepo
     {
-        private readonly Dictionary<Guid, AccessTicket> _accessTickets = [];
-        private readonly Dictionary<Guid, ulong> _queueNumbers = [];
+        private readonly Dictionary<string, AccessTicket> _accessTickets = [];
+        private readonly Dictionary<string, ulong> _queueNumbers = [];
         private readonly Dictionary<ulong, AccessTicket> _accessQueue = [];
 
         private ulong _nowServing = 0;
@@ -16,7 +16,7 @@ namespace AccessQueueService.Data
         public int GetActiveTicketsCount(DateTime activeCutoff) => _accessTickets
             .Count(t => t.Value.ExpiresOn > DateTime.UtcNow && t.Value.LastActive > activeCutoff);
         public int GetQueueCount() => (int)(_nextUnusedTicket - _nowServing);
-        public int GetRequestsAhead(Guid userId)
+        public int GetRequestsAhead(string userId)
         {
             if(_queueNumbers.TryGetValue(userId, out var queueNumber))
             {
@@ -50,7 +50,7 @@ namespace AccessQueueService.Data
             return count;
         }
 
-        public void RemoveUser(Guid userId)
+        public void RemoveUser(string userId)
         {
             _accessTickets.Remove(userId);
         }
@@ -90,7 +90,7 @@ namespace AccessQueueService.Data
             return filledSpots == openSpots;
         }
 
-        public AccessTicket? GetTicket(Guid userId)
+        public AccessTicket? GetTicket(string userId)
         {
             return _accessTickets.TryGetValue(userId, out var ticket) ? ticket : null;
         }
@@ -100,7 +100,7 @@ namespace AccessQueueService.Data
             _accessTickets[ticket.UserId] = ticket;
         }
 
-        bool IAccessQueueRepo.RemoveUser(Guid userId)
+        bool IAccessQueueRepo.RemoveUser(string userId)
         {
             if(_queueNumbers.TryGetValue(userId, out var queueNumber))
             {
