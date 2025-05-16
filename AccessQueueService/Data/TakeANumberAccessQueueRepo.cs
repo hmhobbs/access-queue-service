@@ -50,11 +50,6 @@ namespace AccessQueueService.Data
             return count;
         }
 
-        public void RemoveUser(string userId)
-        {
-            _accessTickets.Remove(userId);
-        }
-
         public bool DidDequeueUntilFull(int activeSeconds, int expirationSeconds, int capacityLimit)
         {
             var now = DateTime.UtcNow;

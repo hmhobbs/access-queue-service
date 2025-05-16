@@ -11,6 +11,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IAccessService, AccessService>();
 builder.Services.AddSingleton<IAccessQueueRepo, TakeANumberAccessQueueRepo>();
+builder.Services.AddHostedService<AccessCleanupBackgroundService>();
 
 
 var app = builder.Build();

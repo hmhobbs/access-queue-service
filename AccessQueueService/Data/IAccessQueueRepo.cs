@@ -15,8 +15,5 @@ namespace AccessQueueService.Data
         public int DeleteExpiredTickets();
         public bool RemoveUser(string userId);
         public bool DidDequeueUntilFull(int activeSeconds, int expirationSeconds, int capacityLimit);
-
-
-
     }
 }
