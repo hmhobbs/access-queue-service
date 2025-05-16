@@ -95,7 +95,7 @@ namespace AccessQueueService.Data
             _accessTickets[ticket.UserId] = ticket;
         }
 
-        bool IAccessQueueRepo.RemoveUser(string userId)
+        public bool RemoveUser(string userId)
         {
             if(_queueNumbers.TryGetValue(userId, out var queueNumber))
             {
