@@ -6,6 +6,6 @@ namespace AccessQueueService.Services
     {
         public Task<AccessResponse> RequestAccess(string userId);
         public Task<bool> RevokeAccess(string userId);
-        public int DeleteExpiredTickets();
+        public Task<int> DeleteExpiredTickets();
     }
 }

@@ -1,4 +1,5 @@
-﻿using AccessQueueService.Data;
+﻿using System.Threading.Tasks;
+using AccessQueueService.Data;
 using AccessQueueService.Models;
 
 namespace AccessQueueService.Services
@@ -106,6 +107,17 @@ namespace AccessQueueService.Services
             }
         }
 
-        public int DeleteExpiredTickets() => _accessQueueRepo.DeleteExpiredTickets();
+        public async Task<int> DeleteExpiredTickets()
+        {
+            await _queueLock.WaitAsync();
+            try
+            {
+                return _accessQueueRepo.DeleteExpiredTickets();
+            }
+            finally
+            {
+                _queueLock.Release();
+            }
+        }
     }
 }

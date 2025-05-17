@@ -17,7 +17,7 @@ namespace AccessQueueService.Services
             var cleanupIntervalMillis = _config.GetValue<int>("AccessQueue:CleanupIntervalSeconds") * 1000;
             while (!stoppingToken.IsCancellationRequested)
             {
-                _accessService.DeleteExpiredTickets();
+                await _accessService.DeleteExpiredTickets();
                 await Task.Delay(cleanupIntervalMillis, stoppingToken);
             }
         }
