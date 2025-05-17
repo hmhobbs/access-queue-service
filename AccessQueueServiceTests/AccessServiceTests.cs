@@ -3,6 +3,7 @@ namespace AccessQueueServiceTests
     using global::AccessQueueService.Data;
     using global::AccessQueueService.Services;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -31,8 +32,9 @@ namespace AccessQueueServiceTests
                 .AddInMemoryCollection(inMemorySettings)
                 .Build();
             var accessQueueRepo = new TakeANumberAccessQueueRepo();
-
-            _accessService = new AccessService(configuration, accessQueueRepo);
+            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+            var logger = loggerFactory.CreateLogger<AccessService>();
+            _accessService = new AccessService(configuration, accessQueueRepo, logger);
         }
 
         [Fact]

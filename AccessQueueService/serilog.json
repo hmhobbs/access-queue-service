@@ -1,10 +1,4 @@
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
   "Serilog": {
     "Using": [ "Serilog.Sinks.Console", "Serilog.Sinks.File" ],
     "MinimumLevel": {
@@ -22,13 +16,5 @@
     "Properties": {
       "Application": "AccessQueueService"
     }
-  },
-  "AccessQueue": {
-    "CapacityLimit": 100,
-    "ActivitySeconds": 900,
-    "ExpirationSeconds": 43200,
-    "RollingExpiration": true,
-    "CleanupIntervalSeconds": 60
-  },
-  "AllowedHosts": "*"
+  }
 }

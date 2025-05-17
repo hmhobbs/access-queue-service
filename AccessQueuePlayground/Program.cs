@@ -2,8 +2,19 @@ using AccessQueuePlayground.Components;
 using AccessQueuePlayground.Services;
 using AccessQueueService.Data;
 using AccessQueueService.Services;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Serilog configuration for console logging only
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .WriteTo.Console()
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext();
+});
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

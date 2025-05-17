@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AccessQueueService.Data;
 using AccessQueueService.Models;
+using Microsoft.Extensions.Logging;
 
 namespace AccessQueueService.Services
 {
@@ -8,16 +9,18 @@ namespace AccessQueueService.Services
     {
         private readonly IConfiguration _configuration;
         private readonly IAccessQueueRepo _accessQueueRepo;
+        private readonly ILogger<AccessService> _logger;
 
         private readonly SemaphoreSlim _queueLock = new(1, 1);
         private readonly int EXP_SECONDS;
         private readonly int ACT_SECONDS;
         private readonly int CAPACITY_LIMIT;
         private readonly bool ROLLING_EXPIRATION;
-        public AccessService(IConfiguration configuration, IAccessQueueRepo accessQueueRepo)
+        public AccessService(IConfiguration configuration, IAccessQueueRepo accessQueueRepo, ILogger<AccessService> logger)
         {
             _configuration = configuration;
             _accessQueueRepo = accessQueueRepo;
+            _logger = logger;
             EXP_SECONDS = _configuration.GetValue<int>("AccessQueue:ExpirationSeconds");
             ACT_SECONDS = _configuration.GetValue<int>("AccessQueue:ActivitySeconds");
             CAPACITY_LIMIT = _configuration.GetValue<int>("AccessQueue:CapacityLimit");
@@ -47,6 +50,7 @@ namespace AccessQueueService.Services
                         ExpiresOn = expiresOn,
                         LastActive = DateTime.UtcNow
                     });
+                    _logger.LogInformation("User {UserId} already has access. Expires on {ExpiresOn}.", userId, expiresOn);
                     return new AccessResponse
                     {
                         ExpiresOn = expiresOn
@@ -62,6 +66,7 @@ namespace AccessQueueService.Services
                         LastActive = DateTime.UtcNow
                     };
                     _accessQueueRepo.UpsertTicket(accessTicket);
+                    _logger.LogInformation("User {UserId} granted access. Expires on {ExpiresOn}.", userId, accessTicket.ExpiresOn);
                     return new AccessResponse
                     {
                         ExpiresOn = accessTicket.ExpiresOn,
@@ -80,6 +85,7 @@ namespace AccessQueueService.Services
                             LastActive = DateTime.UtcNow,
                             ExpiresOn = DateTime.MaxValue,
                         });
+                        _logger.LogInformation("User {UserId} added to queue. Requests ahead: {RequestsAhead}.", userId, requestsAhead);
                     }
                     return new AccessResponse
                     {
@@ -87,6 +93,11 @@ namespace AccessQueueService.Services
                         RequestsAhead = requestsAhead
                     };
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred while processing access request for user {UserId}.", userId);
+                throw;
             }
             finally
             {
@@ -99,7 +110,17 @@ namespace AccessQueueService.Services
             await _queueLock.WaitAsync();
             try
             {
-                return _accessQueueRepo.RemoveUser(userId);
+                var removed = _accessQueueRepo.RemoveUser(userId);
+                if (removed)
+                {
+                    _logger.LogInformation("User {UserId} access revoked.", userId);
+                }
+                return removed;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred while revoking access for user {UserId}.", userId);
+                throw;
             }
             finally
             {
@@ -112,7 +133,17 @@ namespace AccessQueueService.Services
             await _queueLock.WaitAsync();
             try
             {
-                return _accessQueueRepo.DeleteExpiredTickets();
+                var removed = _accessQueueRepo.DeleteExpiredTickets();
+                if (removed > 0)
+                {
+                    _logger.LogInformation("Cleaned up {Count} expired tickets.", removed);
+                }
+                return removed;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred during expired ticket cleanup.");
+                throw;
             }
             finally
             {
