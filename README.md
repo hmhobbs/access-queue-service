@@ -1,4 +1,4 @@
-**NOTE:** I have added github as an origin but for the latest commits and issue tracking please visit https://git.hobbs.zone/henry/AccessQueueService
+**NOTE:** I have added github as a remote but for the latest commits and issue tracking please visit https://git.hobbs.zone/henry/AccessQueueService
 
 # AccessQueueService
 
