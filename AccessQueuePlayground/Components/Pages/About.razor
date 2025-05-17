@@ -1,0 +1,49 @@
+@page "/about"
+
+<PageTitle>About - AccessQueue Playground</PageTitle>
+
+<h2>About AccessQueue Playground</h2>
+<p>
+    <b>AccessQueue Playground</b> is a demo Blazor application for testing and visualizing the <b>AccessQueueService</b> system. It allows you to simulate users requesting access, manage a queue, and experiment with configuration options such as expiration, activity, and capacity limits.
+</p>
+<ul>
+    <li>Project: <b>AccessQueueService</b></li>
+    <li>Frontend: <b>Blazor (BlazorBootstrap)</b></li>
+    <li>Backend: <b>.NET 8</b></li>
+    <li>Features: User queue management, access revocation, activity simulation, and more.</li>
+</ul>
+
+<h3>How AccessQueueService Works</h3>
+<ol>
+    <li><b>Requesting Access:</b> Users are granted access if capacity is available, otherwise they are queued. Expiration and activity timeouts are enforced.</li>
+    <li><b>Queueing:</b> Users in the queue must remain active to keep their spot. The queue is managed FIFO (first-in, first-out).</li>
+    <li><b>Dequeuing:</b> When capacity is available, users are dequeued and granted access if still active.</li>
+    <li><b>Maintaining Access:</b> Users must re-request access to remain active. Expiration can be rolling or fixed.</li>
+    <li><b>Revoking Access:</b> Users can revoke their access, freeing up capacity for others.</li>
+</ol>
+
+<h3>Configuration Options</h3>
+<ul>
+    <li><b>CapacityLimit:</b> Max concurrent users with access.</li>
+    <li><b>ActivitySeconds:</b> How long a user can be inactive before losing their spot.</li>
+    <li><b>ExpirationSeconds:</b> How long before an access ticket expires.</li>
+    <li><b>RollingExpiration:</b> If true, expiration resets on activity.</li>
+    <li><b>RefreshRateMilliseconds:</b> How often the playground requests access for active users and updates the UI.</li>
+</ul>
+<p>For now these options can only be set via appsettings.json. The Playground UI does not yet support changing these values.</p>
+
+<h3>About the Playground UI</h3>
+<p>
+    The Playground UI lets you:
+    <ul>
+        <li>Add users to the queue and grant access.</li>
+        <li>Revoke access for individual users or all users.</li>
+        <li>Reset all data for testing.</li>
+        <li>See real-time updates of users with access, in queue, and inactive.</li>
+    </ul>
+</p>
+
+<h3>Source Code & Documentation</h3>
+<p>
+    See the <a href="https://git.hobbs.zone/henry/AccessQueueService" target="_blank" rel="noopener">project repository</a> for full documentation, source code, and usage instructions.
+</p>
