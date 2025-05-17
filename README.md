@@ -1,3 +1,5 @@
+**NOTE:** I have added github as an origin but for the latest commits and issue tracking please visit https://git.hobbs.zone/henry/AccessQueueService
+
 # AccessQueueService
 
 AccessQueueService is a microservice API designed to control access to a resource with a limited number of concurrent users. It ensures fair access by:
