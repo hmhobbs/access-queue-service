@@ -105,4 +105,4 @@ The `AccessQueuePlayground` project provides a simple web-based UI for interacti
 This playground is intended only for local development and demonstration.
 
 ## License
-See [LICENSE.txt](/LICENSE.txt) for license information.
+See [LICENSE.txt](./LICENSE.txt) for license information.
