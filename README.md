@@ -79,4 +79,4 @@ Unit tests for the service are located in the `AccessQueueServiceTests` project.
 Test results will be displayed in the terminal. You can also use Visual Studio's Test Explorer for a graphical interface.
 
 ## License
-See [LICENSE.txt](/LICENSE.txt) for license information.
+See [LICENSE.txt](./LICENSE.txt) for license information.
