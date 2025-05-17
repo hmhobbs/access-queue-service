@@ -65,7 +65,10 @@ The `AccessResponse` object returned by the API contains the following propertie
    ```powershell
    dotnet run --project AccessQueueService/AccessQueueService.csproj
    ```
-2. The API will be available at the configured host and port (see `launchSettings.json`).
+2. By default, the API will be available at:
+   - HTTP: http://localhost:5199
+   - HTTPS: https://localhost:7291
+   (See `AccessQueueService/Properties/launchSettings.json` for details.)
 
 ## Running the Tests
 
@@ -78,5 +81,28 @@ Unit tests for the service are located in the `AccessQueueServiceTests` project.
 
 Test results will be displayed in the terminal. You can also use Visual Studio's Test Explorer for a graphical interface.
 
+## AccessQueuePlayground (Demo UI)
+
+The `AccessQueuePlayground` project provides a simple web-based UI for interacting with the AccessQueueService API. This is useful for testing and demonstration purposes.
+
+### Running the Playground
+
+1. Build and run the playground project:
+   ```powershell
+   dotnet run --project AccessQueuePlayground/AccessQueuePlayground.csproj
+   ```
+2. By default, the playground will be available at:
+   - HTTP: http://localhost:5108
+   - HTTPS: https://localhost:7211
+   (See `AccessQueuePlayground/Properties/launchSettings.json` for details.)
+
+### Using the Playground
+
+- Open the provided URL in your browser.
+- Use the UI to request and revoke access for different user IDs.
+- The UI will display your access status, queue position, and expiration time.
+
+This playground is intended only for local development and demonstration.
+
 ## License
-See [LICENSE.txt](../LICENSE.txt) for license information.
+See [LICENSE.txt](/LICENSE.txt) for license information.
