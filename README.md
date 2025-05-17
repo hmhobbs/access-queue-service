@@ -1,6 +1,49 @@
 # AccessQueueService
 
-AccessQueueService is a microservice API for managing access to a resource with limited capacity. When a user requests access, they are either granted access immediately (if there is available capacity) or placed in a queue. The service also allows for revoking access.
+AccessQueueService is a microservice API designed to control access to a resource with a limited number of concurrent users. It ensures fair access by:
+
+- Granting immediate access if capacity is available.
+- Placing users in a queue when the resource is full.
+- Automatically managing the queue in a first-in, first-out (FIFO) order.
+- Allowing users to revoke their access, freeing up capacity for others.
+
+This service is ideal for scenarios where you need to limit the number of users accessing a resource at the same time, such as online ticket sale platforms that control how many users can purchase tickets concurrently.
+
+Note: This service is not intended to be called directly from end-user client applications, as it could be easily bypassed. Instead, it should be integrated as middleware within your own APIs or backend services.
+
+## How the Service Works
+
+1. **Requesting Access:**
+   - When a user requests access, the service checks if the current number of active users is below `CapacityLimit`.
+   - If there is capacity, the user is granted access immediately and receives an expiration date set by `ExpirationSeconds`.
+   - If not, the user is added to a queue and receives their position in the queue.
+
+2. **Queueing:**
+   - If a user is placed in the queue, subsequent access requests will return the number of users ahead.
+   - Users must continually re-request access to remain active in the queue; inactivity may result in losing their spot.
+
+3. **Dequeuing:**
+   - Users in the queue are managed in a FIFO (first-in, first-out) order.
+   - Whenever an access request is made, if there is capacity, the service attempts to dequeue users until capacity is met.
+   - If a user is dequeued but the time since their last activity is greater than `ActivitySeconds`, they are not granted access and lose their spot in the queue.
+
+4. **Maintaining Access:**
+   - Users should continually re-request access while they are active to avoid being considered inactive.
+   - If `RollingExpiration` is enabled, the expiration is reset whenever access is re-requested.
+
+5. **Revoking Access:**
+   - If a user requests access after their expiration date, they must restart the process and re-join the queue if there isn't capacity.
+   - When a user revokes access (or their access times out), their access expires immediately.
+   
+### Note on inactivity vs expiration
+
+It is possible for the number of users with access to temporarily exceed the `CapacityLimit` if `ActivitySeconds` is less than `ExpirationSeconds`. This happens because:
+
+- The number of available slots is determined by the time since a user's last activity (`ActivitySeconds`), not by their access expiration (`ExpirationSeconds`).
+- If a user is inactive for longer than `ActivitySeconds`, they no longer count toward the capacity, allowing another user to gain access.
+- However, the original user still technically has access until their `ExpirationSeconds` elapses.
+
+**To ensure the number of users with access never exceeds `CapacityLimit`, set `ActivitySeconds` equal to `ExpirationSeconds`.**
 
 ## API Routes
 
@@ -36,20 +79,6 @@ Example `appsettings.json`:
   }
 }
 ```
-
-## How the Service Works
-
-1. **Requesting Access:**
-   - When a user requests access, the service checks if the current number of active users is below `MaxCapacity`.
-   - If there is capacity, the user is granted access immediately.
-   - If not, the user is added to a queue and receives their position in the queue.
-
-2. **Revoking Access:**
-   - When a user revokes access (or their access times out), their slot is freed.
-
-3. **Queue Management:**
-   - Users in the queue are managed in a FIFO (first-in, first-out) order.
-   - If a user is removed from the queue but they are inactive, they are not granted access and their position in the queue is lost.
 
 ## AccessResponse Object
 
