@@ -16,13 +16,14 @@
 	</p>
 }
 <p>
-	<Button Color="ButtonColor.Success" @onclick="AddUser">Add User</Button>
+	<Button Color="ButtonColor.Success" @onclick="() => AddUser(true)">Add Active User</Button>
+	<Button Color="ButtonColor.Success" Outline @onclick="() => AddUser(false)">Add Inctive User</Button>
 	<Button Color="ButtonColor.Danger" @onclick="RevokeAllAccess">Revoke All</Button>
 	<Button Color="ButtonColor.Warning" @onclick="Reset">Reset Data</Button>
 </p>
 @if (Status != null)
 {
-	<h2>Users with access</h2>
+	<h4>Users with access</h4>
 	<Grid TItem="User" Data="Status.AccessUsers" Class="table table-bordered mt-3" AllowSorting>
 		<GridColumns>
 			<GridColumn TItem="User" HeaderText="Id" PropertyName="Id" SortKeySelector="item => item.Id">
@@ -43,7 +44,7 @@
 			</GridColumn>
 		</GridColumns>
 	</Grid>
-	<h2>Users in queue</h2>
+	<h4>Users in queue</h4>
 	<Grid TItem="User" Data="Status.QueuedUsers" Class="table table-bordered mt-3">
 		<GridColumns>
 			<GridColumn TItem="User" HeaderText="Id" PropertyName="Id">
@@ -64,7 +65,7 @@
 			</GridColumn>
 		</GridColumns>
 	</Grid>
-	<h2>Inactive users</h2>
+	<h4>Inactive users</h4>
 	<Grid TItem="User" Data="Status.InactiveUsers" Class="table table-bordered mt-3" AllowSorting>
 		<GridColumns>
 			<GridColumn TItem="User" HeaderText="Id" PropertyName="Id" SortKeySelector="item => item.Id">
@@ -98,9 +99,9 @@
 		});
 	}
 
-	public void AddUser()
+	public void AddUser(bool isActive)
 	{
-		Manager.AddUser();
+		Manager.AddUser(isActive);
 		Status = Manager.GetStatus();
 	}
 

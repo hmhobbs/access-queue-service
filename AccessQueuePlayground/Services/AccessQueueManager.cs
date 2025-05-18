@@ -36,13 +36,13 @@ namespace AccessQueuePlayground.Services
             CapacityLimit = _config.GetValue<int>("AccessQueue:CapacityLimit")
         };
 
-        public Guid AddUser()
+        public Guid AddUser(bool isActive)
         {
             var id = Guid.NewGuid();
             _users[id] = new User
             {
                 Id = id,
-                Active = false,
+                Active = isActive,
             };
             return id;
         }
